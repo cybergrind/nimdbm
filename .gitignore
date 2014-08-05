@@ -1,9 +1,5 @@
-/Makefile~
+*~
 /a.out
 /nim_mdbm
-/nim_mdbm.nim~
 /nimcache/
-/ooo
-/t.mdbm
-/test.c~
-/tnim.mdbm
+/*.mdbm
