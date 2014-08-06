@@ -1,7 +1,7 @@
 
 
 clt:
-	clang -std=c99 test.c -I include -L `pwd` -lmdbm -v -lstdc++
+	clang -std=c11 test.c -I include -L `pwd` -lmdbm -v -lstdc++
 
 run:
 	LD_LIBRARY_PATH=$LD_LIBRARY_PATH:`pwd` ./a.out

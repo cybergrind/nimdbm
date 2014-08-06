@@ -7,7 +7,7 @@
 int main(int argc, char **argv)
 {
   MDBM* db;
-  char fn[1024];
+
   char buf[2048];
   int ndups;
 

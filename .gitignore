@@ -3,3 +3,4 @@
 /nim_mdbm
 /nimcache/
 /*.mdbm
+/test.linedb
