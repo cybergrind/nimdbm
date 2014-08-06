@@ -3,7 +3,7 @@
 
 type
   datum* {.pfi.} = object
-    dptr*: ptr cchar
+    dptr*: cstring
     dsize*: cint
 
   kvpair* {.pfi.} = object
@@ -22,8 +22,11 @@ proc `[]`(s: cstring, i: TSlice[int]): string =
 
 proc `$`(d: datum):string =
   let sz: int = d.dsize
-  let s = cast[cstring](d.dptr)
+  let s = d.dptr
   d.dptr[0..sz-1]
+
+proc `$`(kv: kvpair):string =
+  "K: " & $kv.key & " V: " & $kv.val
 
 proc `+!!`(p: pointer, size: int): pointer {.inline.} =
   result = cast[pointer](cast[int](p) + size)
@@ -35,27 +38,26 @@ proc mdbm_open(fname: cstring, flags: cint,
 proc mdbm_firstkey(db: dbptr): datum {.dynf.}
 proc mdbm_next(db: dbptr): kvpair {.dynf.}
 
-proc get_next(db: dbptr): void =
+proc get_next(db: dbptr): kvpair =
   let a1 = mdbm_next(db)
-  echo "K: ", a1.key, " V: ", a1.val,
-       " S: ", a1.key.dsize
+  #echo "K: ", a1.key, " V: ", a1.val,
+  #     " S: ", a1.key.dsize
+  return a1
 
 proc main() =
   var sz: cint = 10
   let buff = alloc(sz)
-  var a = datum(dptr: cast[ptr cchar](buff), dsize: sz)
-  a.dptr[] = 'b'
-  cast[ptr cchar](a.dptr +!! 1)[] = 'a'
+  var a = datum(dptr: cast[cstring](buff), dsize: sz)
+  a.dptr= "abcd"
 
   echo cast[cstring](a.dptr)
 
   let db = mdbm_open("./t.mdbm", 0x42, 0o666,0,0)
   let fk = mdbm_firstkey(db)
   #echo "FK: ", fk.dptr, " S: ", fk.dsize, " L: ", len(fk.dptr)
-  for i in 1..3:
-    echo i
-    get_next db
-
+  for i in 1..10000000-2:
+    discard get_next db
+  echo get_next db
 
 
 main()
