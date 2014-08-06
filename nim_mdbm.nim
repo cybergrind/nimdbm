@@ -37,6 +37,12 @@ proc mdbm_open(fname: cstring, flags: cint,
 
 proc mdbm_firstkey(db: dbptr): datum {.dynf.}
 proc mdbm_next(db: dbptr): kvpair {.dynf.}
+proc mdbm_lock(db: dbptr): void {.dynf.}
+proc mdbm_unlock(db: dbptr): void {.dynf.}
+# use 1
+proc mdbm_store(db: dbptr, key: datum, val: datum, flag: cint): cint {.dynf.}
+proc mdbm_store_str(db: dbptr, key: cstring, val: cstring, flag: cint): cint {.dynf.}
+
 
 proc get_next(db: dbptr): kvpair =
   let a1 = mdbm_next(db)
