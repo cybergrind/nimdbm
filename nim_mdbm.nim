@@ -1,5 +1,11 @@
+#import system/sysio
+import strutils
+
+
+
 {.pragma: pfi, pure, final, importc, header: "../include/mdbm.h".}
 {.pragma: dynf, cdecl, importc, dynlib: "./libmdbm.so"}
+
 
 type
   datum* {.pfi.} = object
@@ -22,7 +28,6 @@ proc `[]`(s: cstring, i: TSlice[int]): string =
 
 proc `$`(d: datum):string =
   let sz: int = d.dsize
-  let s = d.dptr
   d.dptr[0..sz-1]
 
 proc `$`(kv: kvpair):string =
@@ -46,11 +51,9 @@ proc mdbm_store_str(db: dbptr, key: cstring, val: cstring, flag: cint): cint {.d
 
 proc get_next(db: dbptr): kvpair =
   let a1 = mdbm_next(db)
-  #echo "K: ", a1.key, " V: ", a1.val,
-  #     " S: ", a1.key.dsize
   return a1
 
-proc main() =
+proc main_test_get() =
   var sz: cint = 10
   let buff = alloc(sz)
   var a = datum(dptr: cast[cstring](buff), dsize: sz)
@@ -60,10 +63,39 @@ proc main() =
 
   let db = mdbm_open("./t.mdbm", 0x42, 0o666,0,0)
   let fk = mdbm_firstkey(db)
-  #echo "FK: ", fk.dptr, " S: ", fk.dsize, " L: ", len(fk.dptr)
+  echo fk
   for i in 1..10000000-2:
     discard get_next db
   echo get_next db
 
+proc fgets(c: cstring, n: cint, f: TFile): cstring {.
+  importc: "fgets", header: "<stdio.h>", tags: [FReadIO].}
+
+proc strchr(c: cstring, s: cchar): cstring {.
+  importc: "strchr", header: "<string.h>".}
+
+proc `-`(a: cstring, b:cstring): cint =
+  cast[cint](a) - cast[cint](b)
+
+proc `+!!`(a: cstring, b:int): cstring =
+  cast[cstring](cast[int](a) + b)
+
+proc main() =
+  # buffered
+  let db = mdbm_open("./tnim.mdbm", 0x42, 0o666,0,0)
+  let buff_size = cint 2048
+  var buff = cast[cstring](alloc(buff_size))
+  var n = 0
+  mdbm_lock(db)
+  while fgets(buff, buffsize, stdin) != nil :
+    let
+      length = len(buff) - 1
+      s = strchr(buff, ':')
+      k = datum(dptr: buff, dsize: s-buff )
+      v = datum(dptr: s +!! 1, dsize: cast[cint](length - 1 - k.dsize))
+    discard mdbm_store(db, k, v, 0)
+    n += 1
+  echo n
+  mdbm_unlock(db)
 
 main()

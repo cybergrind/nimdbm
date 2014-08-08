@@ -1,4 +1,3 @@
-
 #include <string.h>
 #include <stdlib.h>
 #include <sys/fcntl.h>
@@ -17,6 +16,7 @@ int main(int argc, char **argv)
     exit(2);
   }
   ndups = 0;
+  mdbm_lock(db);
   while (fgets(buf,sizeof(buf),stdin)) {
     int len = strlen(buf);
     char* s;
@@ -31,9 +31,9 @@ int main(int argc, char **argv)
       key.dsize = s-buf;
       val.dptr = s+1;
       val.dsize = len-key.dsize-1;
-      mdbm_lock(db);
+
       ret = mdbm_store(db,key,val,MDBM_INSERT);
-      mdbm_unlock(db);
+
       if (ret == 1) {
         ndups++;
       } else if (ret == -1) {
@@ -41,6 +41,7 @@ int main(int argc, char **argv)
       }
     }
   }
+  mdbm_unlock(db);
   mdbm_sync(db);      /* optional flush to disk */
   mdbm_close(db);
   return 0;
